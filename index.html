@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -48,6 +48,157 @@
           }
         });
       });
+  </script>
+
+</body>
+</html>
+ -->
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>📊 LeetCode Tracker</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #f5f6fa;
+    }
+    h1 {
+      text-align: center;
+      color: #273c75;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background: #fff;
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid #dcdde1;
+      text-align: center;
+    }
+    th {
+      background-color: #40739e;
+      color: white;
+    }
+    tr:hover {
+      background-color: #f1f1f1;
+    }
+    td[contenteditable="true"] {
+      background-color: #fefefe;
+      cursor: text;
+    }
+    .export-btn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background-color: #44bd32;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📊 LeetCode Tracker</h1>
+  <div id="table-container"></div>
+  <button class="export-btn" onclick="exportToCSV()">⬇ Export Updated CSV</button>
+
+  <script>
+    const csvUrl = "LeetCode_Tracker.csv"; // Make sure it's in same folder
+
+    fetch(csvUrl)
+      .then(response => response.text())
+      .then(csvText => {
+        Papa.parse(csvText, {
+          header: true,
+          skipEmptyLines: true,
+          complete: function(results) {
+            const data = results.data;
+            const container = document.getElementById("table-container");
+
+            let html = "<table><thead><tr>";
+            html += "<th>Solved ✅</th>";
+            for (let key in data[0]) {
+              html += `<th>${key}</th>`;
+            }
+            html += "<th>Notes 📝</th></tr></thead><tbody>";
+
+            data.forEach((row, index) => {
+              const rowId = index + 1; // unique row identifier
+              html += `<tr>`;
+              // Checkbox
+              const solvedKey = `solved_${rowId}`;
+              const solvedChecked = localStorage.getItem(solvedKey) === "true" ? "checked" : "";
+              html += `<td><input type="checkbox" data-id="${solvedKey}" ${solvedChecked}></td>`;
+
+              for (let key in row) {
+                html += `<td>${row[key]}</td>`;
+              }
+
+              // Notes column
+              const noteKey = `note_${rowId}`;
+              const savedNote = localStorage.getItem(noteKey) || "";
+              html += `<td contenteditable="true" data-id="${noteKey}">${savedNote}</td>`;
+
+              html += `</tr>`;
+            });
+
+            html += "</tbody></table>";
+            container.innerHTML = html;
+
+            // Add checkbox event
+            document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+              checkbox.addEventListener('change', (e) => {
+                localStorage.setItem(e.target.dataset.id, e.target.checked);
+              });
+            });
+
+            // Add note saving
+            document.querySelectorAll('td[contenteditable]').forEach(cell => {
+              cell.addEventListener('blur', (e) => {
+                localStorage.setItem(e.target.dataset.id, e.target.innerText.trim());
+              });
+            });
+          }
+        });
+      });
+
+    function exportToCSV() {
+      const rows = [];
+      const table = document.querySelector("table");
+      const headers = Array.from(table.querySelectorAll("thead th")).map(th => th.innerText.replace(" ✅", "").replace(" 📝", ""));
+      rows.push(headers);
+
+      table.querySelectorAll("tbody tr").forEach((tr, index) => {
+        const rowData = [];
+        const rowId = index + 1;
+        const isChecked = localStorage.getItem(`solved_${rowId}`) === "true" ? "Yes" : "No";
+        rowData.push(isChecked);
+
+        const cells = tr.querySelectorAll("td");
+        for (let i = 1; i < cells.length - 1; i++) {
+          rowData.push(cells[i].innerText);
+        }
+
+        const note = localStorage.getItem(`note_${rowId}`) || "";
+        rowData.push(note);
+
+        rows.push(rowData);
+      });
+
+      const csvContent = Papa.unparse(rows);
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      saveAs(blob, "LeetCode_Tracker_Updated.csv");
+    }
   </script>
 
 </body>
