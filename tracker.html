@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>LeetCode Tracker</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f4; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #fff; }
+    th, td { padding: 8px 12px; border: 1px solid #ccc; text-align: center; }
+    th { background-color: #2e86de; color: white; }
+    tr:hover { background-color: #f1f1f1; }
+  </style>
+</head>
+<body>
+
+  <h1>📊 LeetCode Tracker</h1>
+  <div id="table-container"></div>
+
+  <script>
+    const csvUrl = "https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/LeetCode_Tracker.csv";
+
+    fetch(csvUrl)
+      .then(response => response.text())
+      .then(csvText => {
+        Papa.parse(csvText, {
+          header: true,
+          complete: function(results) {
+            const data = results.data;
+            const container = document.getElementById("table-container");
+
+            let html = "<table><thead><tr>";
+            for (let key in data[0]) {
+              html += `<th>${key}</th>`;
+            }
+            html += "</tr></thead><tbody>";
+
+            data.forEach(row => {
+              html += "<tr>";
+              for (let key in row) {
+                html += `<td>${row[key]}</td>`;
+              }
+              html += "</tr>";
+            });
+
+            html += "</tbody></table>";
+            container.innerHTML = html;
+          }
+        });
+      });
+  </script>
+
+</body>
+</html>
